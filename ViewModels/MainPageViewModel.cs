@@ -6,41 +6,48 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Threading;
 using System.Numerics;
+using System.Collections.ObjectModel;
+
 using Windows.UI.Xaml;
 using Windows.Devices.WiFi;
+using Windows.Devices.Enumeration;
+using Windows.Devices.Bluetooth;
 using Windows.Networking.Connectivity;
 
 using Microsoft.Practices.ServiceLocation;
+
 using Prism.Windows.Mvvm;
 using Prism.Commands;
 
 using SensorTagPi.Core.Interfaces;
+using SensorTagPi.Models;
 
 namespace SensorTagPi.ViewModels
 {
     public class MainPageViewModel : ViewModelBase
     {
-        const double HorizontalResolution = 2.0;
-        const double VerticalResolution   = 2.0;
+        private readonly ILogger           _logger;
+        private readonly ISensorTagService _service;
+        private readonly TaskScheduler     _uiContext;
+        private DeviceWatcher _watcher;
+        private WiFiAdapter   _wifi;
+        private bool          _isBusy;
 
-        private readonly ILogger         _logger;
-        private readonly TaskScheduler   _uiContext;
-        private WiFiAdapter              _wifi;
-        private bool                     _isBusy;
-
-        public MainPageViewModel(ILogger logger)
+        public MainPageViewModel(ILogger logger, ISensorTagService service)
         {
             //_logger    = ServiceLocator.Current.GetInstance<ILogger>();
-            _logger    = logger;
+            _logger = logger;
+            _service = service;
             _uiContext = TaskScheduler.FromCurrentSynchronizationContext();
-            _isBusy    = false;
+            _watcher = null;
+            _wifi   = null;
+            _isBusy = false;
 
             // command implementation
-            ConnectCommand    = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
-            DisconnectCommand = new DelegateCommand(DoDisconnectCommand, CanDoDisconnectCommand);
+            ScanCommand    = new DelegateCommand(DoScanCommand, CanDoScanCommand);
+            ConnectCommand = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
 
-            // notify all change
-            OnPropertyChanged(() => IsConnected);
+            _logger.LogInfo("MainPageViewMode.ctor", "success!");
         }
 
         #region Public Properties
@@ -52,166 +59,99 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _networkID, value); }
         }
 
-        private ushort _sensorPort = 2368;
-        public ushort SensorPort
+        private ObservableCollection<DeviceInformation> _devices = new ObservableCollection<DeviceInformation>();
+        public ObservableCollection<DeviceInformation> Devices
         {
-            get { return _sensorPort; }
+            get { return _devices; }
+        }
+
+        private int _selectedIndex = -1;
+        public int SelectedDeviceIndex
+        {
+            get { return _selectedIndex; }
 
             set
             {
-                if ( !IsConnected )
-                    SetProperty(ref _sensorPort, value);
+                SetProperty(ref _selectedIndex, value);
+                ConnectCommand.RaiseCanExecuteChanged();
             }
-        }
-
-        private ushort _remotePort = 8787;
-        public ushort RemotePort
-        {
-            get { return _remotePort; }
-
-            set
-            {
-                if (!IsConnected)
-                    SetProperty(ref _remotePort, value);
-            }
-        }
-
-        private string _remoteIP = "192.168.0.100";
-        public string RemoteIP
-        {
-            get { return _remoteIP; }
-
-            set
-            {
-                SetProperty(ref _remoteIP, value);
-            }
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> if station is connected.
-        /// </summary>
-        public bool IsConnected
-        {
-            get { return _sensor.IsConnected; }
-        }
-
-        private int _interval = 200;
-        public int Interval
-        {
-            get { return _interval; }
-
-            set { SetProperty(ref _interval, value); }
-        }
-
-        private ulong _packetCount = 0;
-        public ulong RxMessages
-        {
-            get { return _packetCount; }
-
-            set { SetProperty(ref _packetCount, value); }
         }
         #endregion
 
         #region Commands
+        public DelegateCommand ScanCommand { get; private set; }
         public DelegateCommand ConnectCommand { get; private set; }
-        public DelegateCommand DisconnectCommand { get; private set; }
         #endregion
 
         #region Command Implemenation
-        internal async void DoConnectCommand()
+        void DoScanCommand()
         {
-            try
+            if ( _watcher == null )
             {
-                // get the wifi adapter (if needed)
-                if (_wifi == null)
-                {
-                    _wifi = (await WiFiAdapter.FindAllAdaptersAsync()).First();
-                    _wifi.AvailableNetworksChanged += OnAvailableNetworksChanged;
+                //string aqs = BluetoothLEDevice.GetDeviceSelectorFromDeviceName("SensorTag*");
+                string aqs = BluetoothLEDevice.GetDeviceSelector();
+                _watcher = DeviceInformation.CreateWatcher(aqs);
 
-                    // scan for networks
-                    await _wifi.ScanAsync();
-                }
+                _watcher.EnumerationCompleted += OnWatcherEnumerationCompleted;
+                _watcher.Added += OnWatcherAdded;
+                _watcher.Removed += OnWatcherRemoved;
 
-                await _sensor.Connect(_sensorPort, _remoteIP, _remotePort);
+                _watcher.Start();
 
-                // update ui state
-                OnPropertyChanged(() => IsConnected);
-                ConnectCommand.RaiseCanExecuteChanged();
-                DisconnectCommand.RaiseCanExecuteChanged();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException("MainPageViewModel.DoConnectCommand", ex, string.Empty);
+                _logger.LogInfo("MainPageViewModel.DoScanCommand", "watcher: {0}", aqs);
             }
         }
 
-        private async void OnAvailableNetworksChanged(WiFiAdapter sender, object args)
+        bool CanDoScanCommand()
         {
-            if (_isBusy)
-                return;
+            return _watcher == null;
+        }
 
-            // restablish wifi connection (if applicable)
-            var profile = NetworkInformation.GetInternetConnectionProfile();
-            if (profile == null || !profile.ProfileName.StartsWith("RPT_"))
+        async void DoConnectCommand()
+        {
+            if ( _selectedIndex >= 0 && !_service.IsServiceInitialized)
             {
-                var network = _wifi.NetworkReport.AvailableNetworks.Where(nw => nw.Ssid.StartsWith("RPT_")).FirstOrDefault();
-                if (network != null)
-                {
-                    _isBusy = true;
-                    // connect to this network
-                    var result = await _wifi.ConnectAsync(network, WiFiReconnectionKind.Automatic);
-                    // notify ui
-                    await Task.Factory.StartNew(() => NetworkID = network.Ssid, CancellationToken.None, TaskCreationOptions.None, _uiContext);
-                    _isBusy = false;
-                    _logger.LogInfo("MainPageViewModel.OnAvailableNetworksChanged", "network: {0}: {1}", _networkID, result.ConnectionStatus);
-                }
-                else
-                {
-                    _isBusy = true;
-                    // notify ui
-                    await Task.Factory.StartNew(() => NetworkID = string.Empty, CancellationToken.None, TaskCreationOptions.None, _uiContext);
-                    _isBusy = false;
-                    _logger.LogInfo("MainPageViewModel.OnAvailableNetworksChanged", "no sensor network available");
-                }
+                var deviceInfo = _devices[_selectedIndex];
+                await _service.InitializeServiceAsync(deviceInfo);
             }
         }
 
-        internal bool CanDoConnectCommand()
+        bool CanDoConnectCommand()
         {
-            return !_sensor.IsConnected;
+            return _selectedIndex >= 0 && !_service.IsServiceInitialized;
         }
-
-        internal async void DoDisconnectCommand()
-        {
-            try
-            {
-                await _sensor.Disconnect();
-
-                // update ui state
-                OnPropertyChanged(() => IsConnected);
-                ConnectCommand.RaiseCanExecuteChanged();
-                DisconnectCommand.RaiseCanExecuteChanged();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException("MainPageViewModel.DoDisconnectCommand", ex, string.Empty);
-            }
-        }
-
-        internal bool CanDoDisconnectCommand()
-        {
-            return _sensor.IsConnected;
-        }
-
         #endregion
 
         #region Support methods
-
-        private void OnTimerTick(object sender, object e)
+        void OnWatcherRemoved(DeviceWatcher sender, DeviceInformationUpdate args)
         {
-            RemoteIP   = _sensor.RemoteHost;
-            RxMessages = _sensor.RxMessages;
+            _logger.LogInfo("MainPageViewModel.OnWatcherRemoved", "Id: {0}", args.Id);
+            Task.Factory.StartNew(() =>
+            {
+                var deviceInfo = _devices.FirstOrDefault(di => di.Id == args.Id);
+                if (deviceInfo != null)
+                    _devices.Remove(deviceInfo);
+            },
+                CancellationToken.None, TaskCreationOptions.None, _uiContext);
         }
+
+        void OnWatcherAdded(DeviceWatcher sender, DeviceInformation deviceInfo)
+        {
+            _logger.LogInfo("MainPageViewModel.OnWatcherAdded", "Found: {0}", deviceInfo.Name);
+            Task.Factory.StartNew(() =>
+            {
+                _devices.Add(deviceInfo);
+            },
+                CancellationToken.None, TaskCreationOptions.None, _uiContext);
+        }
+
+        void OnWatcherEnumerationCompleted(DeviceWatcher sender, object args)
+        {
+            _logger.LogInfo("MainPageViewModel.OnWatcherEnumerationCompleted", "Enumeration completed");
+            _watcher.Stop();
+            _watcher = null;
+        }
+
         #endregion
     }
 }

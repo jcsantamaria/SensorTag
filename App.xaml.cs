@@ -54,8 +54,11 @@ namespace SensorTagPi
 
         protected override Task OnInitializeAsync(IActivatedEventArgs args)
         {
-            // register logger
-            Container.RegisterInstance<Core.Interfaces.ILogger>(new Log.Logger());
+            // register services
+            var logger = new Log.Logger();
+            var service = new Models.SensorTagService(logger);
+            Container.RegisterInstance<Core.Interfaces.ILogger>(logger);
+            Container.RegisterInstance<Models.ISensorTagService>(service);
 
             // JCS: no need to define these: default implementation already does the job as long as views and viewmodels follow name conventions
             // define ViewModelLocator

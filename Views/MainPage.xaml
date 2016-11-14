@@ -1,15 +1,37 @@
 ﻿<Page
-    x:Class="Views.SensorPi.MainPage"
+    x:Class="SensorTagPi.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:prismMvvm="using:Prism.Windows.Mvvm"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="clr-namespace:RasPiApp.ViewModels"
+    xmlns:vm="using:SensorTagPi.ViewModels"
     prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    d:DataContext="{d:DesignInstance vm:MainPageViewModel}"
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
 
+        <StackPanel Grid.Row="0" Orientation="Horizontal" >
+            <Button Content="Scan" Width="100" Command="{Binding ScanCommand}" Margin="0,0,20,0" />
+
+            <Button Content="Connect" Width="100" Command="{Binding ConnectCommand}" />
+        </StackPanel>
+
+        <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedIndex="{Binding SelectedDeviceIndex, Mode=TwoWay}" >
+            <ListBox.ItemTemplate>
+                <DataTemplate >
+                    <StackPanel>
+                        <TextBlock Text="{Binding Name}" Margin="2,2,10,2"/>
+                        <TextBlock Text="{Binding Pairing.IsPaired}" Margin="2,2,10,2"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            
+        </ListBox>
     </Grid>
 </Page>

@@ -14,7 +14,7 @@
   <mp:PhoneIdentity PhoneProductId="f18b615b-8c6c-4337-b20a-b25164b6927b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>SensorPi</DisplayName>
+    <DisplayName>SensorTagPi</DisplayName>
     <PublisherDisplayName>jcsanta</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -30,9 +30,9 @@
   <Applications>
     <Application Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="SensorPi.App">
+      EntryPoint="SensorTagPi.App">
       <uap:VisualElements
-        DisplayName="SensorPi"
+        DisplayName="SensorTagPi"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
         Description="SensorPi"
@@ -45,5 +45,10 @@
 
   <Capabilities>
     <Capability Name="internetClient" />
+    <DeviceCapability Name="bluetooth.genericAttributeProfile">
+      <Device Id="any">
+        <Function Type="name:genericAccess" />
+      </Device>
+    </DeviceCapability>
   </Capabilities>
 </Package>
