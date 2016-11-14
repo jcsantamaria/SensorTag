@@ -14,41 +14,48 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.Bluetooth;
 using Windows.Networking.Connectivity;
 
-using Microsoft.Practices.ServiceLocation;
-
 using Prism.Windows.Mvvm;
 using Prism.Commands;
 
 using SensorTagPi.Core.Interfaces;
 using SensorTagPi.Models;
+using Prism.Events;
 
 namespace SensorTagPi.ViewModels
 {
     public class MainPageViewModel : ViewModelBase
     {
         private readonly ILogger           _logger;
+        private readonly IEventAggregator  _eventAggregator;
         private readonly ISensorTagService _service;
         private readonly TaskScheduler     _uiContext;
         private DeviceWatcher _watcher;
         private WiFiAdapter   _wifi;
         private bool          _isBusy;
+        private Dictionary<Sensors, SensorViewModel> _sensors;
 
-        public MainPageViewModel(ILogger logger, ISensorTagService service)
+        public MainPageViewModel(ILogger logger, IEventAggregator eventAggregator, ISensorTagService service)
         {
             //_logger    = ServiceLocator.Current.GetInstance<ILogger>();
-            _logger = logger;
-            _service = service;
-            _uiContext = TaskScheduler.FromCurrentSynchronizationContext();
+            _logger          = logger;
+            _eventAggregator = eventAggregator;
+            _service         = service;
+            _uiContext       = TaskScheduler.FromCurrentSynchronizationContext();
+
             _watcher = null;
             _wifi   = null;
             _isBusy = false;
+            _sensors = Enum.GetValues(typeof(Sensors)).Cast<Sensors>().Select(s => new SensorViewModel(s)).ToDictionary(svm => svm.Sensor);
 
             // command implementation
             ScanCommand    = new DelegateCommand(DoScanCommand, CanDoScanCommand);
             ConnectCommand = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
 
+            _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(ss => _sensors[ss.Sensor].Status = ss.Active);
+
             _logger.LogInfo("MainPageViewMode.ctor", "success!");
         }
+
 
         #region Public Properties
         private string _networkID = string.Empty;
@@ -75,6 +82,11 @@ namespace SensorTagPi.ViewModels
                 SetProperty(ref _selectedIndex, value);
                 ConnectCommand.RaiseCanExecuteChanged();
             }
+        }
+
+        public IList<SensorViewModel> Sensors
+        {
+            get { return _sensors.Values.ToList(); }
         }
         #endregion
 

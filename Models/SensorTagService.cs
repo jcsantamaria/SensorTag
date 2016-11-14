@@ -9,29 +9,41 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.Enumeration.Pnp;
 using Windows.Storage.Streams;
 
+using Prism.Events;
+
 using SensorTagPi.Core.Interfaces;
 
 namespace SensorTagPi.Models
 {
+    public enum Sensors
+    {
+        TEMPERATURE = 0,
+        HUMIDITY = 1,
+        BAROMETER = 2,
+        MOVEMENT = 3,
+        OPTICAL = 4,
+        KEYS = 5,
+    };
+
     public interface ISensorTagService
     {
         bool IsServiceInitialized { get; }
 
         Task InitializeServiceAsync(DeviceInformation device);
     }
+   
+    public class SensorStatus
+    {
+        public Sensors Sensor;
+        public bool    Active;
+    };
+
+    public class SensorStatusEvent : PubSubEvent<SensorStatus>
+    {
+    };
 
     class SensorTagService : ISensorTagService
     {
-        enum Sensors
-        {
-            TEMPERATURE = 0,
-            HUMIDITY    = 1,
-            BAROMETER   = 2,
-            MOVEMENT    = 3,
-            OPTICAL     = 4,
-            KEYS        = 5,
-        };
-
         List<Guid> ServiceUuids = new List<Guid>(new [] {
                                 new Guid("F000AA00-0451-4000-B000-000000000000"),
                                 new Guid("F000AA20-0451-4000-B000-000000000000"),
@@ -60,15 +72,17 @@ namespace SensorTagPi.Models
                               });
 
         private readonly ILogger _logger;
+        private readonly IEventAggregator _eventAggregator;
 
         private GattDeviceService[]  _services;
         private GattCharacteristic[] _notifications;
         private DeviceWatcher        _watcher;
         private PnpObjectWatcher   pnpwatcher;
 
-        public SensorTagService(ILogger logger)
+        public SensorTagService(ILogger logger, IEventAggregator eventAggregator)
         {
             _logger = logger;
+            _eventAggregator = eventAggregator;
 
             _services      = new GattDeviceService[Enum.GetValues(typeof(Sensors)).Length];
             _notifications = new GattCharacteristic[Enum.GetValues(typeof(Sensors)).Length];
@@ -200,6 +214,8 @@ namespace SensorTagPi.Models
                                 await cnf.WriteValueAsync(writer.DetachBuffer());
                             }
                         }
+
+                        _eventAggregator.GetEvent<SensorStatusEvent>().Publish(new SensorStatus { Sensor = sensor, Active = true });
 
                         _logger.LogInfo("SensorTagService.ConfigureServiceForNotificationsAsync", "Success! {0}", sensor);
                     }

@@ -101,6 +101,7 @@
     <Compile Include="Log\StorageFileEventListener.cs" />
     <Compile Include="Models\SensorTagService.cs" />
     <Compile Include="ViewModels\MainPageViewModel.cs" />
+    <Compile Include="ViewModels\SensorViewModel.cs" />
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
