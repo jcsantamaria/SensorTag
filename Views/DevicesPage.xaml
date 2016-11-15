@@ -1,0 +1,58 @@
+﻿<Page
+    x:Class="SensorTagPi.Views.DevicesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:prismMvvm="using:Prism.Windows.Mvvm"
+    xmlns:core="using:SensorTagPi.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:SensorTagPi.ViewModels"
+    prismMvvm:ViewModelLocator.AutoWireViewModel="True"
+    d:DataContext="{d:DesignInstance vm:DevicesPageViewModel}"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.Resources>
+            <core:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        </Grid.Resources>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <CommandBar Grid.Row="0" >
+            <CommandBar.Content>
+                <TextBlock Text="{Binding SensorName}" />
+            </CommandBar.Content>
+            <CommandBar.PrimaryCommands>
+                <AppBarButton Content="Sensors" Width="100" Command="{Binding NavigateCommand}" CommandParameter="Sensors" Margin="0,0,20,0" />
+            </CommandBar.PrimaryCommands>
+        </CommandBar>
+
+        <Grid Grid.Row="1" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <AppBarButton Grid.Column="0" HorizontalAlignment="Center" Content="Scan" Width="100" Command="{Binding ScanCommand}" Margin="0,0,20,0" BorderThickness="1" />
+
+            <AppBarButton Grid.Column="1" HorizontalAlignment="Center" Content="Connect" Width="100" Command="{Binding ConnectCommand}"  BorderThickness="1" />
+        </Grid>
+        
+        <GridView Grid.Row="2" ItemsSource="{Binding Devices}" SelectedIndex="{Binding SelectedDeviceIndex, Mode=TwoWay}" Margin="2">
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" Margin="2,2,10,2"/>
+                            <TextBlock Text="Paired: " Margin="2,2,2,2" />
+                            <TextBlock Text="{Binding Pairing.IsPaired}" Margin="2,2,10,2"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>

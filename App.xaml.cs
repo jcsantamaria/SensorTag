@@ -31,7 +31,7 @@ namespace SensorTagPi
         protected override Task OnLaunchApplicationAsync(LaunchActivatedEventArgs args)
         {
             // Navigate to the initial page
-            NavigationService.Navigate("Main", null);
+            NavigationService.Navigate("Devices", null);
 
             Window.Current.Activate();
 

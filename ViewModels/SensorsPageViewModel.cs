@@ -5,32 +5,33 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Prism.Windows.Mvvm;
+using Prism.Windows.Navigation;
 using Prism.Events;
+using Prism.Commands;
 
 using SensorTagPi.Core.Interfaces;
 using SensorTagPi.Models;
 
 namespace SensorTagPi.ViewModels
 {
-    class SensorPageViewModel : ViewModelBase
+    class SensorsPageViewModel : PageViewModelBase
     {
-        private readonly ILogger           _logger;
-        private readonly IEventAggregator  _eventAggregator;
-        private readonly ISensorTagService _service;
-        private readonly TaskScheduler     _uiContext;
+        public const string Token = "Sensors";
 
-        public SensorPageViewModel(ILogger logger, IEventAggregator eventAggregator, ISensorTagService service)
+        private readonly ISensorTagService  _service;
+
+        public SensorsPageViewModel(ILogger logger, IEventAggregator eventAggregator, INavigationService navigation, ISensorTagService service) : base(logger, eventAggregator, navigation)
         {
-            _logger          = logger;
-            _eventAggregator = eventAggregator;
-            _service         = service;
-            _uiContext       = TaskScheduler.FromCurrentSynchronizationContext();
+            _service = service;
 
             // sensor view models
             Temperature = new TemperatureViewModel();
 
+            // subscriptions
             _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
             _eventAggregator.GetEvent<TemperatureSensorEvent>().Subscribe(OnTemperatureSensor, ThreadOption.UIThread);
+
+            // command implementation
 
             _logger.LogInfo("SensorPageViewModel.ctor", "success!");
         }
@@ -42,6 +43,12 @@ namespace SensorTagPi.ViewModels
         {
             get { return _service.IsServiceInitialized; }
         }
+        #endregion
+
+        #region Commands
+        #endregion
+
+        #region Command Implemenation
         #endregion
 
         private void OnTemperatureSensor(TemperatureSensor args)

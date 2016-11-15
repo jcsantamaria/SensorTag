@@ -16,39 +16,34 @@ using Windows.Networking.Connectivity;
 
 using Prism.Windows.Mvvm;
 using Prism.Commands;
+using Prism.Events;
+using Prism.Windows.Navigation;
 
 using SensorTagPi.Core.Interfaces;
 using SensorTagPi.Models;
-using Prism.Events;
 
 namespace SensorTagPi.ViewModels
 {
-    public class MainPageViewModel : ViewModelBase
+    public class DevicesPageViewModel : PageViewModelBase
     {
-        private readonly ILogger           _logger;
-        private readonly IEventAggregator  _eventAggregator;
-        private readonly ISensorTagService _service;
-        private readonly TaskScheduler     _uiContext;
+        public const string Token = "Devices";
+
+        private readonly ISensorTagService  _service;
         private DeviceWatcher _watcher;
         private WiFiAdapter   _wifi;
         private bool          _isBusy;
 
-        public MainPageViewModel(ILogger logger, IEventAggregator eventAggregator, ISensorTagService service)
+        public DevicesPageViewModel(ILogger logger, IEventAggregator eventAggregator, INavigationService navigation, ISensorTagService service) : base(logger, eventAggregator, navigation)
         {
-            //_logger    = ServiceLocator.Current.GetInstance<ILogger>();
-            _logger          = logger;
-            _eventAggregator = eventAggregator;
-            _service         = service;
-            _uiContext       = TaskScheduler.FromCurrentSynchronizationContext();
+            _service = service;
 
             _watcher = null;
             _wifi   = null;
             _isBusy = false;
 
-
             // command implementation
-            ScanCommand    = new DelegateCommand(DoScanCommand, CanDoScanCommand);
-            ConnectCommand = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
+            ScanCommand     = new DelegateCommand(DoScanCommand, CanDoScanCommand);
+            ConnectCommand  = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
 
             _logger.LogInfo("MainPageViewMode.ctor", "success!");
         }
@@ -132,6 +127,8 @@ namespace SensorTagPi.ViewModels
 
                 SensorName = deviceInfo.Name;
                 OnPropertyChanged(() => IsConnected);
+
+                _navigation.Navigate(SensorsPageViewModel.Token, null);
             }
         }
 
@@ -146,11 +143,11 @@ namespace SensorTagPi.ViewModels
         {
             _logger.LogInfo("MainPageViewModel.OnWatcherRemoved", "Id: {0}", args.Id);
             Task.Factory.StartNew(() =>
-            {
-                var deviceInfo = _devices.FirstOrDefault(di => di.Id == args.Id);
-                if (deviceInfo != null)
-                    _devices.Remove(deviceInfo);
-            },
+                    {
+                        var deviceInfo = _devices.FirstOrDefault(di => di.Id == args.Id);
+                        if (deviceInfo != null)
+                            _devices.Remove(deviceInfo);
+                    },
                 CancellationToken.None, TaskCreationOptions.None, _uiContext);
         }
 
@@ -158,9 +155,9 @@ namespace SensorTagPi.ViewModels
         {
             _logger.LogInfo("MainPageViewModel.OnWatcherAdded", "Found: {0}", deviceInfo.Name);
             Task.Factory.StartNew(() =>
-            {
-                _devices.Add(deviceInfo);
-            },
+                    {
+                        _devices.Add(deviceInfo);
+                    },
                 CancellationToken.None, TaskCreationOptions.None, _uiContext);
         }
 
