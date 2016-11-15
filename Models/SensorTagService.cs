@@ -32,16 +32,6 @@ namespace SensorTagPi.Models
         Task InitializeServiceAsync(DeviceInformation device);
     }
    
-    public class SensorStatus
-    {
-        public Sensors Sensor;
-        public bool    Active;
-    };
-
-    public class SensorStatusEvent : PubSubEvent<SensorStatus>
-    {
-    };
-
     class SensorTagService : ISensorTagService
     {
         List<Guid> ServiceUuids = new List<Guid>(new [] {
@@ -215,7 +205,7 @@ namespace SensorTagPi.Models
                             }
                         }
 
-                        _eventAggregator.GetEvent<SensorStatusEvent>().Publish(new SensorStatus { Sensor = sensor, Active = true });
+                        _eventAggregator.GetEvent<SensorStatusEvent>().Publish(new SensorStatus(sensor, true));
 
                         _logger.LogInfo("SensorTagService.ConfigureServiceForNotificationsAsync", "Success! {0}", sensor);
                     }
@@ -234,6 +224,8 @@ namespace SensorTagPi.Models
 
             double objtemp = (BitConverter.ToInt16(buffer, 0) >> 2) * 0.03125;
             double ambtemp = (BitConverter.ToInt16(buffer, 2) >> 2) * 0.03125;
+
+            _eventAggregator.GetEvent<TemperatureSensorEvent>().Publish(new TemperatureSensor(objtemp, ambtemp));
 
             //_logger.LogInfo("SensorTagService.TemperatureValueChanged", "Temperature: {0:F3}  Ambient: {1:F3}", objtemp, ambtemp);
         }
@@ -280,7 +272,7 @@ namespace SensorTagPi.Models
             DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
             byte data = buffer[0];
-            //_logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:0X}", data);
+            _logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:X}", data);
         }
 
         private void HumidityValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)

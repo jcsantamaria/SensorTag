@@ -32,7 +32,6 @@ namespace SensorTagPi.ViewModels
         private DeviceWatcher _watcher;
         private WiFiAdapter   _wifi;
         private bool          _isBusy;
-        private Dictionary<Sensors, SensorViewModel> _sensors;
 
         public MainPageViewModel(ILogger logger, IEventAggregator eventAggregator, ISensorTagService service)
         {
@@ -45,17 +44,14 @@ namespace SensorTagPi.ViewModels
             _watcher = null;
             _wifi   = null;
             _isBusy = false;
-            _sensors = Enum.GetValues(typeof(Sensors)).Cast<Sensors>().Select(s => new SensorViewModel(s)).ToDictionary(svm => svm.Sensor);
+
 
             // command implementation
             ScanCommand    = new DelegateCommand(DoScanCommand, CanDoScanCommand);
             ConnectCommand = new DelegateCommand(DoConnectCommand, CanDoConnectCommand);
 
-            _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(ss => _sensors[ss.Sensor].Status = ss.Active);
-
             _logger.LogInfo("MainPageViewMode.ctor", "success!");
         }
-
 
         #region Public Properties
         private string _networkID = string.Empty;
@@ -64,6 +60,19 @@ namespace SensorTagPi.ViewModels
             get { return _networkID; }
 
             set { SetProperty(ref _networkID, value); }
+        }
+
+        private string _sensorName = string.Empty;
+        public string SensorName
+        {
+            get { return _sensorName; }
+
+            set { SetProperty(ref _sensorName, value); }
+        }
+
+        public bool IsConnected
+        {
+            get { return _service.IsServiceInitialized; }
         }
 
         private ObservableCollection<DeviceInformation> _devices = new ObservableCollection<DeviceInformation>();
@@ -82,11 +91,6 @@ namespace SensorTagPi.ViewModels
                 SetProperty(ref _selectedIndex, value);
                 ConnectCommand.RaiseCanExecuteChanged();
             }
-        }
-
-        public IList<SensorViewModel> Sensors
-        {
-            get { return _sensors.Values.ToList(); }
         }
         #endregion
 
@@ -125,6 +129,9 @@ namespace SensorTagPi.ViewModels
             {
                 var deviceInfo = _devices[_selectedIndex];
                 await _service.InitializeServiceAsync(deviceInfo);
+
+                SensorName = deviceInfo.Name;
+                OnPropertyChanged(() => IsConnected);
             }
         }
 

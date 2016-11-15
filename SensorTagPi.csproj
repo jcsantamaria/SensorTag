@@ -95,13 +95,17 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Core\Common.cs" />
     <Compile Include="Core\Interfaces\ILogger.cs" />
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\MetroEventSource.cs" />
     <Compile Include="Log\StorageFileEventListener.cs" />
+    <Compile Include="Models\Sensors.cs" />
     <Compile Include="Models\SensorTagService.cs" />
     <Compile Include="ViewModels\MainPageViewModel.cs" />
+    <Compile Include="ViewModels\SensorPageViewModel.cs" />
     <Compile Include="ViewModels\SensorViewModel.cs" />
+    <Compile Include="ViewModels\TemperatureViewModel.cs" />
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -132,8 +136,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\SensorPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
