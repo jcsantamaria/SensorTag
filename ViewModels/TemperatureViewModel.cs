@@ -20,8 +20,8 @@ namespace SensorTagPi.ViewModels
             _eventAggregator = eventAggregator;
 
             // subscriptions
-            _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
-            _eventAggregator.GetEvent<TemperatureSensorEvent>().Subscribe(OnTemperatureSensor, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<PubSubEvent<TemperatureSensor>>().Subscribe(OnTemperatureSensor, ThreadOption.UIThread);
 
         }
         private bool _active;

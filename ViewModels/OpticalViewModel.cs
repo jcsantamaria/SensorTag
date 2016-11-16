@@ -11,17 +11,17 @@ using SensorTagPi.Models;
 
 namespace SensorTagPi.ViewModels
 {
-    public class BarometerViewModel : ViewModelBase
+    public class OpticalViewModel : ViewModelBase
     {
         protected readonly IEventAggregator _eventAggregator;
 
-        public BarometerViewModel(IEventAggregator eventAggregator)
+        public OpticalViewModel(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
 
             // subscriptions
             _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
-            _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Subscribe(OnBarometerSensor, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<PubSubEvent<OpticalSensor>>().Subscribe(OnOpticalSensor, ThreadOption.UIThread);
 
         }
         private bool _active;
@@ -31,32 +31,24 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _active, value); }
         }
 
-        private string _temperature;
-        public string Temperature
+        private string _luminosity;
+        public string Luminosity
         {
-            get { return _temperature; }
-            set { SetProperty(ref _temperature, value); }
+            get { return _luminosity; }
+            set { SetProperty(ref _luminosity, value); }
         }
 
-        private string _pressure;
-        public string Pressure
+        private void OnOpticalSensor(OpticalSensor args)
         {
-            get { return _pressure; }
-            set { SetProperty(ref _pressure, value); }
-        }
-
-        private void OnBarometerSensor(BarometerSensor args)
-        {
-            Active      = true;
-            Temperature = string.Format("{0:F2} C", args.Temperature);
-            Pressure    = string.Format("{0:F2} hPa", args.Pressure);
+            Active = true;
+            Luminosity = string.Format("{0:F2} lx", args.Luminosity);
         }
 
         private void OnSensorStatus(SensorStatus ss)
         {
             switch (ss.Sensor)
             {
-                case Sensors.BAROMETER:
+                case Sensors.OPTICAL:
                     Active = ss.Active;
                     break;
             }

@@ -102,7 +102,9 @@
     <Compile Include="Log\StorageFileEventListener.cs" />
     <Compile Include="Models\Sensors.cs" />
     <Compile Include="Models\SensorTagService.cs" />
+    <Compile Include="ViewModels\HumidityViewModel.cs" />
     <Compile Include="ViewModels\KeysViewModel.cs" />
+    <Compile Include="ViewModels\OpticalViewModel.cs" />
     <Compile Include="ViewModels\PageViewModelBase.cs" />
     <Compile Include="ViewModels\DevicesPageViewModel.cs" />
     <Compile Include="ViewModels\BarometerViewModel.cs" />

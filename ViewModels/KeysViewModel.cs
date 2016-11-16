@@ -20,7 +20,7 @@ namespace SensorTagPi.ViewModels
             _eventAggregator = eventAggregator;
 
             // subscriptions
-            _eventAggregator.GetEvent<KeysSensorEvent>().Subscribe(OnKeysSensor, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<PubSubEvent<KeysSensor>>().Subscribe(OnKeysSensor, ThreadOption.UIThread);
 
         }
 

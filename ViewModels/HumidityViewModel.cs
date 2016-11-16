@@ -11,17 +11,17 @@ using SensorTagPi.Models;
 
 namespace SensorTagPi.ViewModels
 {
-    public class BarometerViewModel : ViewModelBase
+    public class HumidityViewModel : ViewModelBase
     {
         protected readonly IEventAggregator _eventAggregator;
 
-        public BarometerViewModel(IEventAggregator eventAggregator)
+        public HumidityViewModel(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
 
             // subscriptions
             _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
-            _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Subscribe(OnBarometerSensor, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<PubSubEvent<HumiditySensor>>().Subscribe(OnHumiditySensor, ThreadOption.UIThread);
 
         }
         private bool _active;
@@ -31,6 +31,13 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _active, value); }
         }
 
+        private string _humidity;
+        public string Humidity
+        {
+            get { return _humidity; }
+            set { SetProperty(ref _humidity, value); }
+        }
+
         private string _temperature;
         public string Temperature
         {
@@ -38,25 +45,18 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _temperature, value); }
         }
 
-        private string _pressure;
-        public string Pressure
+        private void OnHumiditySensor(HumiditySensor args)
         {
-            get { return _pressure; }
-            set { SetProperty(ref _pressure, value); }
-        }
-
-        private void OnBarometerSensor(BarometerSensor args)
-        {
-            Active      = true;
+            Active = true;
+            Humidity = string.Format("{0:F2} %", args.Humidity);
             Temperature = string.Format("{0:F2} C", args.Temperature);
-            Pressure    = string.Format("{0:F2} hPa", args.Pressure);
         }
 
         private void OnSensorStatus(SensorStatus ss)
         {
             switch (ss.Sensor)
             {
-                case Sensors.BAROMETER:
+                case Sensors.HUMIDITY:
                     Active = ss.Active;
                     break;
             }

@@ -18,7 +18,9 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
@@ -113,12 +115,59 @@
         </Border>
         <Border Grid.Row="3" Grid.Column="1" BorderThickness="0,1,1,1" BorderBrush="CornflowerBlue" >
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Temperature: " Margin="2,2,2,2" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding Barometer.Temperature}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
                 <TextBlock Text="Pressure: " Margin="2,2,2,2" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding Barometer.Pressure}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
+                <TextBlock Text="Temperature: " Margin="2,2,2,2" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Barometer.Temperature}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
             </StackPanel>
         </Border>
 
+        <!-- Humidity -->
+        <Border Grid.Row="4" Grid.Column="0" BorderThickness="1,1,0,1" BorderBrush="CornflowerBlue" >
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="HumiActive" Stroke="Blue"  Width="12" Height="12" Margin="5">
+                    <Interactivity:Interaction.Behaviors>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Humidity.Active}"  Value="true">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=HumiActive}" PropertyName="Fill" Value="CornflowerBlue"/>
+                        </Interactions:DataTriggerBehavior>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Humidity.Active}"  Value="false">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=HumiActive}" PropertyName="Fill" Value="Transparent"/>
+                        </Interactions:DataTriggerBehavior>
+                    </Interactivity:Interaction.Behaviors>
+                </Ellipse>
+                <TextBlock Text="Humidity" VerticalAlignment="Center" Margin="2"/>
+            </StackPanel>
+        </Border>
+        <Border Grid.Row="4" Grid.Column="1" BorderThickness="0,1,1,1" BorderBrush="CornflowerBlue" >
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Humidity: " Margin="2,2,2,2" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Humidity.Humidity}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
+                <TextBlock Text="Temperature: " Margin="2,2,2,2" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Humidity.Temperature}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Optical -->
+        <Border Grid.Row="5" Grid.Column="0" BorderThickness="1,1,0,1" BorderBrush="CornflowerBlue" >
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="OptiActive" Stroke="Blue"  Width="12" Height="12" Margin="5">
+                    <Interactivity:Interaction.Behaviors>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Optical.Active}"  Value="true">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=OptiActive}" PropertyName="Fill" Value="CornflowerBlue"/>
+                        </Interactions:DataTriggerBehavior>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Optical.Active}"  Value="false">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=OptiActive}" PropertyName="Fill" Value="Transparent"/>
+                        </Interactions:DataTriggerBehavior>
+                    </Interactivity:Interaction.Behaviors>
+                </Ellipse>
+                <TextBlock Text="Optical" VerticalAlignment="Center" Margin="2"/>
+            </StackPanel>
+        </Border>
+        <Border Grid.Row="5" Grid.Column="1" BorderThickness="0,1,1,1" BorderBrush="CornflowerBlue" >
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Luminosity: " Margin="2,2,2,2" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding Optical.Luminosity}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

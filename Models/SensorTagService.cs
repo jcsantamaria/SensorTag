@@ -68,8 +68,8 @@ namespace SensorTagPi.Models
 
         private GattDeviceService[]  _services;
         private GattCharacteristic[] _notifications;
-        private DeviceWatcher        _watcher;
-        private PnpObjectWatcher   pnpwatcher;
+        //private DeviceWatcher        _watcher;
+        //private PnpObjectWatcher   pnpwatcher;
 
         public SensorTagService(ILogger logger, IEventAggregator eventAggregator)
         {
@@ -79,7 +79,7 @@ namespace SensorTagPi.Models
             _services      = new GattDeviceService[Enum.GetValues(typeof(Sensors)).Length];
             _notifications = new GattCharacteristic[Enum.GetValues(typeof(Sensors)).Length];
 
-            _watcher = null;
+            //_watcher = null;
 
             SensorName = string.Empty;
             IsServiceInitialized = false;
@@ -213,7 +213,7 @@ namespace SensorTagPi.Models
                             }
                         }
 
-                        _eventAggregator.GetEvent<SensorStatusEvent>().Publish(new SensorStatus(sensor, true));
+                        _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Publish(new SensorStatus(sensor, true));
 
                         _logger.LogInfo("SensorTagService.ConfigureServiceForNotificationsAsync", "Success! {0}", sensor);
                     }
@@ -233,7 +233,7 @@ namespace SensorTagPi.Models
             double objtemp = (BitConverter.ToInt16(buffer, 0) >> 2) * 0.03125;
             double ambtemp = (BitConverter.ToInt16(buffer, 2) >> 2) * 0.03125;
 
-            _eventAggregator.GetEvent<TemperatureSensorEvent>().Publish(new TemperatureSensor(objtemp, ambtemp));
+            _eventAggregator.GetEvent<PubSubEvent<TemperatureSensor>>().Publish(new TemperatureSensor(objtemp, ambtemp));
 
             //_logger.LogInfo("SensorTagService.TemperatureValueChanged", "Temperature: {0:F3}  Ambient: {1:F3}", objtemp, ambtemp);
         }
@@ -244,9 +244,11 @@ namespace SensorTagPi.Models
             DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
             ushort data = BitConverter.ToUInt16(buffer, 0);
-            double a = data & 0x0FFF;
-            double b = (data & 0xF000) >> 12;
-            double luminosity = 0.01 * Math.Pow(a, b);
+            int m = data & 0x0FFF;
+            int e = (data & 0xF000) >> 12;
+            double luminosity = m * 0.01 * Math.Pow(2, e);
+
+            _eventAggregator.GetEvent<PubSubEvent<OpticalSensor>>().Publish(new OpticalSensor(luminosity));
 
             //_logger.LogInfo("SensorTagService.OpticalValueChanged", "Luminosity: {0:F3}", luminosity);
         }
@@ -281,7 +283,7 @@ namespace SensorTagPi.Models
 
             byte data = buffer[0];
 
-            _eventAggregator.GetEvent<KeysSensorEvent>().Publish(new KeysSensor((data & 0x01) != 0, (data & 0x02) != 0));
+            _eventAggregator.GetEvent<PubSubEvent<KeysSensor>>().Publish(new KeysSensor((data & 0x02) != 0, (data & 0x01) != 0));
 
             _logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:X}", data);
         }
@@ -294,6 +296,8 @@ namespace SensorTagPi.Models
             double temp = BitConverter.ToInt16(buffer, 0) * 165.0 / 65536.0 - 40.0;
             double humidity = BitConverter.ToInt16(buffer, 2) * 100.0 / 65536.0;
 
+            _eventAggregator.GetEvent<PubSubEvent<HumiditySensor>>().Publish(new HumiditySensor(humidity, temp));
+
             //_logger.LogInfo("SensorTagService.HumidityValueChanged", "Temperature: {0:F3}  Humidity: {1:F3}", temp, humidity);
         }
 
@@ -305,7 +309,7 @@ namespace SensorTagPi.Models
             double temp = BitConverter.ToInt32(new byte[] { buffer[0], buffer[1], buffer[2], 0x00 }, 0) / 100.0;
             double pres = BitConverter.ToInt32(new byte[] { buffer[3], buffer[4], buffer[5], 0x00 }, 0) / 100.0;
 
-            _eventAggregator.GetEvent<BarometerSensorEvent>().Publish(new BarometerSensor(temp, pres));
+            _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Publish(new BarometerSensor(temp, pres));
 
             //_logger.LogInfo("SensorTagService.BarometerValueChanged", "Temperature: {0:F3}  Pressure: {1:F3}", temp, pres);
         }

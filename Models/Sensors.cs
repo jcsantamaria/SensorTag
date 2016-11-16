@@ -8,11 +8,26 @@ using Prism.Events;
 
 namespace SensorTagPi.Models
 {
+    /// <summary>
+    /// Reports activity state from device sensors.
+    /// </summary>
     public class SensorStatus
     {
+        /// <summary>
+        /// The sensor identifier.
+        /// </summary>
         public Sensors Sensor { get; private set; }
+
+        /// <summary>
+        /// The activity state of the sensor.
+        /// </summary>
         public bool    Active { get; private set; }
 
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="sensor">The sensor identifier.</param>
+        /// <param name="active">The current state of the sensor.</param>
         public SensorStatus(Sensors sensor, bool active)
         {
             Sensor = sensor;
@@ -20,15 +35,26 @@ namespace SensorTagPi.Models
         }
     };
 
-    public class SensorStatusEvent : PubSubEvent<SensorStatus>
-    {
-    };
-
+    /// <summary>
+    /// Reports a sample from the IR Temperature sensor.
+    /// </summary>
     public class TemperatureSensor
     {
+        /// <summary>
+        /// Temperature at the object in Centrigrades (C).
+        /// </summary>
         public double Temperature { get; set; }
+
+        /// <summary>
+        /// Temperature of ambient in Centrigrades (C).
+        /// </summary>
         public double Ambient { get; set; }
 
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="temperature">Current object temperature.</param>
+        /// <param name="ambient">Current ambient temperature.</param>
         public TemperatureSensor( double temperature = double.NaN, double ambient = double.NaN)
         {
             Temperature  = temperature;
@@ -36,31 +62,53 @@ namespace SensorTagPi.Models
         }
     };
 
-    public class TemperatureSensorEvent : PubSubEvent<TemperatureSensor>
-    {
-    };
-
+    /// <summary>
+    /// Reports a sample from the Barometer sensor.
+    /// </summary>
     public class BarometerSensor
     {
-        public double Temperature { get; set; }
+        /// <summary>
+        /// Pressure in HectoPascals (hPa).
+        /// </summary>
         public double Pressure { get; set; }
 
-        public BarometerSensor(double temperature = double.NaN, double pressure = double.NaN)
+        /// <summary>
+        /// Temperature in Centigrades (C).
+        /// </summary>
+        public double Temperature { get; set; }
+
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="pressure">Current pressure in hPa.</param>
+        /// <param name="temperature">Current temperature in C.</param>
+        public BarometerSensor(double pressure = double.NaN, double temperature = double.NaN )
         {
-            Temperature = temperature;
             Pressure = pressure;
+            Temperature = temperature;
         }
     };
 
-    public class BarometerSensorEvent : PubSubEvent<BarometerSensor>
-    {
-    };
-
+    /// <summary>
+    /// Reports button states from the Keys sensor.
+    /// </summary>
     public class KeysSensor
     {
+        /// <summary>
+        /// State of the power button (small button).
+        /// </summary>
         public bool PowerButton { get; set; }
 
+        /// <summary>
+        /// State of the options button (large button).
+        /// </summary>
         public bool OptionButton { get; set; }
+
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="powerButton">Current state of the power button.</param>
+        /// <param name="optionButton">Current state of the option button.</param>
         public KeysSensor(bool powerButton, bool optionButton)
         {
             PowerButton = powerButton;
@@ -68,8 +116,50 @@ namespace SensorTagPi.Models
         }
     };
 
-    public class KeysSensorEvent : PubSubEvent<KeysSensor>
+    /// <summary>
+    /// Reports a sample from the Humidity sensor.
+    /// </summary>
+    public class HumiditySensor
     {
+        /// <summary>
+        /// Relative humidity in percentage (hPa).
+        /// </summary>
+        public double Humidity { get; set; }
+
+        /// <summary>
+        /// Temperature in Centigrades (C).
+        /// </summary>
+        public double Temperature { get; set; }
+
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="humidity">Current relative humidity in percentage.</param>
+        /// <param name="temperature">Current temperature in C.</param>
+        public HumiditySensor(double humidity = double.NaN, double temperature = double.NaN)
+        {
+            Humidity = humidity;
+            Temperature = temperature;
+        }
     };
 
+    /// <summary>
+    /// Reports a sample from the Optical sensor.
+    /// </summary>
+    public class OpticalSensor
+    {
+        /// <summary>
+        /// Light intensity in lux (lx).
+        /// </summary>
+        public double Luminosity { get; set; }
+
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="luminosity">Current light intensity in lux.</param>
+        public OpticalSensor(double luminosity = double.NaN)
+        {
+            Luminosity = luminosity;
+        }
+    };
 }
