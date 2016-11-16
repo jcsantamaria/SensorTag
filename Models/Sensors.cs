@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Prism.Events;
+using System.Numerics;
 
 namespace SensorTagPi.Models
 {
@@ -160,6 +161,40 @@ namespace SensorTagPi.Models
         public OpticalSensor(double luminosity = double.NaN)
         {
             Luminosity = luminosity;
+        }
+    };
+
+    /// <summary>
+    /// Reports a sample from the Movement sensor.
+    /// </summary>
+    public class MovementSensor
+    {
+        /// <summary>
+        /// Accelerometer data in G.
+        /// </summary>
+        public Vector3 Accelerometer { get; set; }
+
+        /// <summary>
+        /// Gyroscope data in deg/s.
+        /// </summary>
+        public Vector3 Gyroscope { get; set; }
+
+        /// <summary>
+        /// Magnetometer data in micro Tesla (uT).
+        /// </summary>
+        public Vector3 Magnetometer { get; set; }
+
+        /// <summary>
+        /// Creates an sample instance.
+        /// </summary>
+        /// <param name="accelerometer">Current accelerometer data in G.</param>
+        /// <param name="gyroscope">Current gyroscope data in deg/s.</param>
+        /// <param name="magnetometer">Current magnetometer data in uT.</param>
+        public MovementSensor(Vector3 accelerometer, Vector3 gyroscope, Vector3 magnetometer)
+        {
+            Accelerometer = accelerometer;
+            Gyroscope = gyroscope;
+            Magnetometer = magnetometer;
         }
     };
 }

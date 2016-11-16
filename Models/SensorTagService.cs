@@ -259,19 +259,23 @@ namespace SensorTagPi.Models
             DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
             // gyroscope data
-            double gyrox = BitConverter.ToInt16(buffer, 0) * 500.0 / 65536.0;
-            double gyroy = BitConverter.ToInt16(buffer, 2) * 500.0 / 65536.0;
-            double gyroz = BitConverter.ToInt16(buffer, 4) * 500.0 / 65536.0;
+            float gyrox = BitConverter.ToInt16(buffer, 0) * 500.0f / 65536.0f;
+            float gyroy = BitConverter.ToInt16(buffer, 2) * 500.0f / 65536.0f;
+            float gyroz = BitConverter.ToInt16(buffer, 4) * 500.0f / 65536.0f;
 
             // acceleration data: acceleration range configured to 2G
-            double accx = BitConverter.ToInt16(buffer, 6) * 2.0 / 32768.0;
-            double accy = BitConverter.ToInt16(buffer, 8) * 2.0 / 32768.0;
-            double accz = BitConverter.ToInt16(buffer, 10) * 2.0 / 32768.0;
+            float accx = BitConverter.ToInt16(buffer, 6) * 2.0f / 32768.0f;
+            float accy = BitConverter.ToInt16(buffer, 8) * 2.0f / 32768.0f;
+            float accz = BitConverter.ToInt16(buffer, 10) * 2.0f / 32768.0f;
 
             // magnetometer data
-            double magx = BitConverter.ToInt16(buffer, 12);
-            double magy = BitConverter.ToInt16(buffer, 14);
-            double magz = BitConverter.ToInt16(buffer, 16);
+            float magx = BitConverter.ToInt16(buffer, 12);
+            float magy = BitConverter.ToInt16(buffer, 14);
+            float magz = BitConverter.ToInt16(buffer, 16);
+
+            _eventAggregator.GetEvent<PubSubEvent<MovementSensor>>().Publish(new MovementSensor(new System.Numerics.Vector3(accx, accy, accz),
+                                                                                                new System.Numerics.Vector3(gyrox, gyroy, gyroz),
+                                                                                                new System.Numerics.Vector3(magx, magy, magz)));
 
             //_logger.LogInfo("SensorTagService.MovementValueChanged", "Acc: {0:F3},{1:F3},{2:F3}", accx, accy, accz);
         }

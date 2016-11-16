@@ -169,5 +169,47 @@
                 <TextBox Text="{Binding Optical.Luminosity}" Width="100" Margin="2,2,10,2" IsReadOnly="True"/>
             </StackPanel>
         </Border>
+
+        <!-- Movement -->
+        <Border Grid.Row="6" Grid.Column="0" BorderThickness="1,1,0,1" BorderBrush="CornflowerBlue" >
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="MoveActive" Stroke="Blue"  Width="12" Height="12" Margin="5">
+                    <Interactivity:Interaction.Behaviors>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Movement.Active}"  Value="true">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=MoveActive}" PropertyName="Fill" Value="CornflowerBlue"/>
+                        </Interactions:DataTriggerBehavior>
+                        <Interactions:DataTriggerBehavior Binding="{Binding Movement.Active}"  Value="false">
+                            <Interactions:ChangePropertyAction TargetObject="{Binding ElementName=MoveActive}" PropertyName="Fill" Value="Transparent"/>
+                        </Interactions:DataTriggerBehavior>
+                    </Interactivity:Interaction.Behaviors>
+                </Ellipse>
+                <TextBlock Text="Movement" VerticalAlignment="Center" Margin="2"/>
+            </StackPanel>
+        </Border>
+        <Border Grid.Row="6" Grid.Column="1" BorderThickness="0,1,1,1" BorderBrush="CornflowerBlue" >
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Accelerometer -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Accelerometer: " VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Movement.Accelerometer}" Width="200" IsReadOnly="True"/>
+
+                <!-- Gyroscope -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Gyroscope: " VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Movement.Gyroscope}" Width="200" IsReadOnly="True"/>
+
+                <!-- Magnetometer -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Magnetometer: " VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Movement.Magnetometer}" Width="200" IsReadOnly="True"/>
+            </Grid>
+        </Border>
     </Grid>
 </Page>

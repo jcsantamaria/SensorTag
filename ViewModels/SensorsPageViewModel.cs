@@ -29,6 +29,7 @@ namespace SensorTagPi.ViewModels
             Barometer   = new BarometerViewModel(eventAggregator);
             Humidity    = new HumidityViewModel(eventAggregator);
             Optical     = new OpticalViewModel(eventAggregator);
+            Movement    = new MovementViewModel(eventAggregator);
             Keys        = new KeysViewModel(eventAggregator);
 
             // command implementation
@@ -46,6 +47,7 @@ namespace SensorTagPi.ViewModels
         public BarometerViewModel   Barometer { get; private set; }
         public HumidityViewModel    Humidity { get; private set; }
         public OpticalViewModel     Optical { get; private set; }
+        public MovementViewModel    Movement { get; private set; }
         public KeysViewModel        Keys { get; private set; }
 
         public bool IsConnected

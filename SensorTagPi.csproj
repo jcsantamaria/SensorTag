@@ -104,12 +104,12 @@
     <Compile Include="Models\SensorTagService.cs" />
     <Compile Include="ViewModels\HumidityViewModel.cs" />
     <Compile Include="ViewModels\KeysViewModel.cs" />
+    <Compile Include="ViewModels\MovementViewModel.cs" />
     <Compile Include="ViewModels\OpticalViewModel.cs" />
     <Compile Include="ViewModels\PageViewModelBase.cs" />
     <Compile Include="ViewModels\DevicesPageViewModel.cs" />
     <Compile Include="ViewModels\BarometerViewModel.cs" />
     <Compile Include="ViewModels\SensorsPageViewModel.cs" />
-    <Compile Include="ViewModels\SensorViewModel.cs" />
     <Compile Include="ViewModels\TemperatureViewModel.cs" />
     <Compile Include="Views\DevicesPage.xaml.cs">
       <DependentUpon>DevicesPage.xaml</DependentUpon>
