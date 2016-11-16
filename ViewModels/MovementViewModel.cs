@@ -57,7 +57,7 @@ namespace SensorTagPi.ViewModels
             Active = true;
             Accelerometer = string.Format("{0,6:F2},{1,6:F2},{2,6:F2} G", args.Accelerometer.X, args.Accelerometer.Y, args.Accelerometer.Z);
             Gyroscope     = string.Format("{0,6:F2},{1,6:F2},{2,6:F2} deg/s", args.Gyroscope.X, args.Gyroscope.Y, args.Gyroscope.Z);
-            Magnetometer  = string.Format("{0,6:F2},{1,6:F2},{2,6:F2} G", args.Magnetometer.X, args.Magnetometer.Y, args.Magnetometer.Z);
+            Magnetometer  = string.Format("{0,6:F2},{1,6:F2},{2,6:F2} μT", args.Magnetometer.X, args.Magnetometer.Y, args.Magnetometer.Z);
         }
 
         private void OnSensorStatus(SensorStatus ss)
