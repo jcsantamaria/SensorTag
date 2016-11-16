@@ -40,4 +40,36 @@ namespace SensorTagPi.Models
     {
     };
 
+    public class BarometerSensor
+    {
+        public double Temperature { get; set; }
+        public double Pressure { get; set; }
+
+        public BarometerSensor(double temperature = double.NaN, double pressure = double.NaN)
+        {
+            Temperature = temperature;
+            Pressure = pressure;
+        }
+    };
+
+    public class BarometerSensorEvent : PubSubEvent<BarometerSensor>
+    {
+    };
+
+    public class KeysSensor
+    {
+        public bool PowerButton { get; set; }
+
+        public bool OptionButton { get; set; }
+        public KeysSensor(bool powerButton, bool optionButton)
+        {
+            PowerButton = powerButton;
+            OptionButton = optionButton;
+        }
+    };
+
+    public class KeysSensorEvent : PubSubEvent<KeysSensor>
+    {
+    };
+
 }

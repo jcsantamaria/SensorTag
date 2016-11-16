@@ -11,17 +11,17 @@ using SensorTagPi.Models;
 
 namespace SensorTagPi.ViewModels
 {
-    public class TemperatureViewModel : ViewModelBase
+    public class BarometerViewModel : ViewModelBase
     {
         protected readonly IEventAggregator _eventAggregator;
 
-        public TemperatureViewModel(IEventAggregator eventAggregator)
+        public BarometerViewModel(IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
 
             // subscriptions
             _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
-            _eventAggregator.GetEvent<TemperatureSensorEvent>().Subscribe(OnTemperatureSensor, ThreadOption.UIThread);
+            _eventAggregator.GetEvent<BarometerSensorEvent>().Subscribe(OnBarometerSensor, ThreadOption.UIThread);
 
         }
         private bool _active;
@@ -38,25 +38,25 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _temperature, value); }
         }
 
-        private string _ambient;
-        public string Ambient
+        private string _pressure;
+        public string Pressure
         {
-            get { return _ambient; }
-            set { SetProperty(ref _ambient, value); }
+            get { return _pressure; }
+            set { SetProperty(ref _pressure, value); }
         }
 
-        private void OnTemperatureSensor(TemperatureSensor args)
+        private void OnBarometerSensor(BarometerSensor args)
         {
             Active      = true;
             Temperature = string.Format("{0:F2} C", args.Temperature);
-            Ambient     = string.Format("{0:F2} C", args.Ambient);
+            Pressure    = string.Format("{0:F2} hPa", args.Pressure);
         }
 
         private void OnSensorStatus(SensorStatus ss)
         {
             switch (ss.Sensor)
             {
-                case Sensors.TEMPERATURE:
+                case Sensors.BAROMETER:
                     Active = ss.Active;
                     break;
             }

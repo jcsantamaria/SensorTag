@@ -57,12 +57,9 @@ namespace SensorTagPi.ViewModels
             set { SetProperty(ref _networkID, value); }
         }
 
-        private string _sensorName = string.Empty;
         public string SensorName
         {
-            get { return _sensorName; }
-
-            set { SetProperty(ref _sensorName, value); }
+            get { return _service.SensorName; }
         }
 
         public bool IsConnected
@@ -125,7 +122,7 @@ namespace SensorTagPi.ViewModels
                 var deviceInfo = _devices[_selectedIndex];
                 await _service.InitializeServiceAsync(deviceInfo);
 
-                SensorName = deviceInfo.Name;
+                OnPropertyChanged(() => SensorName);
                 OnPropertyChanged(() => IsConnected);
 
                 _navigation.Navigate(SensorsPageViewModel.Token, null);

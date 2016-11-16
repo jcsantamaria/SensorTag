@@ -27,6 +27,8 @@ namespace SensorTagPi.Models
 
     public interface ISensorTagService
     {
+        string SensorName { get; }
+
         bool IsServiceInitialized { get; }
 
         Task InitializeServiceAsync(DeviceInformation device);
@@ -79,10 +81,13 @@ namespace SensorTagPi.Models
 
             _watcher = null;
 
+            SensorName = string.Empty;
             IsServiceInitialized = false;
         }
 
         #region ISensorTagService methods
+        public string SensorName { get; set; }
+
         public bool IsServiceInitialized { get; set; }
 
         public async Task InitializeServiceAsync(DeviceInformation device)
@@ -117,7 +122,10 @@ namespace SensorTagPi.Models
                     }
                 }
 
+                // set properties
                 IsServiceInitialized = true;
+                SensorName = device.Name;
+
                 await ConfigureServiceForNotificationsAsync();
             }
             catch (Exception e)
@@ -272,6 +280,9 @@ namespace SensorTagPi.Models
             DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
             byte data = buffer[0];
+
+            _eventAggregator.GetEvent<KeysSensorEvent>().Publish(new KeysSensor((data & 0x01) != 0, (data & 0x02) != 0));
+
             _logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:X}", data);
         }
 
@@ -293,6 +304,8 @@ namespace SensorTagPi.Models
 
             double temp = BitConverter.ToInt32(new byte[] { buffer[0], buffer[1], buffer[2], 0x00 }, 0) / 100.0;
             double pres = BitConverter.ToInt32(new byte[] { buffer[3], buffer[4], buffer[5], 0x00 }, 0) / 100.0;
+
+            _eventAggregator.GetEvent<BarometerSensorEvent>().Publish(new BarometerSensor(temp, pres));
 
             //_logger.LogInfo("SensorTagService.BarometerValueChanged", "Temperature: {0:F3}  Pressure: {1:F3}", temp, pres);
         }

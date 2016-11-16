@@ -44,7 +44,7 @@
         <GridView Grid.Row="2" ItemsSource="{Binding Devices}" SelectedIndex="{Binding SelectedDeviceIndex, Mode=TwoWay}" Margin="2">
             <GridView.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderThickness="1">
+                    <Border BorderThickness="1" BorderBrush="Azure">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" Margin="2,2,10,2"/>
                             <TextBlock Text="Paired: " Margin="2,2,2,2" />

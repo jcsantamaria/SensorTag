@@ -25,11 +25,9 @@ namespace SensorTagPi.ViewModels
             _service = service;
 
             // sensor view models
-            Temperature = new TemperatureViewModel();
-
-            // subscriptions
-            _eventAggregator.GetEvent<SensorStatusEvent>().Subscribe(OnSensorStatus, ThreadOption.UIThread);
-            _eventAggregator.GetEvent<TemperatureSensorEvent>().Subscribe(OnTemperatureSensor, ThreadOption.UIThread);
+            Temperature = new TemperatureViewModel(eventAggregator);
+            Barometer   = new BarometerViewModel(eventAggregator);
+            Keys        = new KeysViewModel(eventAggregator);
 
             // command implementation
 
@@ -37,7 +35,14 @@ namespace SensorTagPi.ViewModels
         }
 
         #region Public Properties
+        public string SensorName
+        {
+            get { return _service.SensorName; }
+        }
+
         public TemperatureViewModel Temperature { get; private set; }
+        public BarometerViewModel   Barometer { get; private set; }
+        public KeysViewModel        Keys { get; private set; }
 
         public bool IsConnected
         {
@@ -51,20 +56,5 @@ namespace SensorTagPi.ViewModels
         #region Command Implemenation
         #endregion
 
-        private void OnTemperatureSensor(TemperatureSensor args)
-        {
-            Temperature.Temperature = string.Format("{0:F2} C", args.Temperature);
-            Temperature.Ambient = string.Format("{0:F2} C", args.Ambient);
-        }
-
-        private void OnSensorStatus(SensorStatus ss)
-        {
-            switch (ss.Sensor)
-            {
-                case Sensors.TEMPERATURE:
-                    Temperature.Active = ss.Active;
-                    break;
-            }
-        }
     }
 }
