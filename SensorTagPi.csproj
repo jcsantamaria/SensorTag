@@ -100,6 +100,8 @@
     <Compile Include="Log\Logger.cs" />
     <Compile Include="Log\MetroEventSource.cs" />
     <Compile Include="Log\StorageFileEventListener.cs" />
+    <Compile Include="Models\ConnectionStrings.cs" />
+    <Compile Include="Models\IoTService.cs" />
     <Compile Include="Models\Sensors.cs" />
     <Compile Include="Models\SensorTagService.cs" />
     <Compile Include="ViewModels\HumidityViewModel.cs" />

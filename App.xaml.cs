@@ -56,9 +56,12 @@ namespace SensorTagPi
         {
             // register services
             var logger = new Log.Logger();
-            var service = new Models.SensorTagService(logger, EventAggregator);
+            var sensorService = new Models.SensorTagService(logger, EventAggregator);
+            var iotService    = new Models.IoTService(logger, EventAggregator);
+
             Container.RegisterInstance<Core.Interfaces.ILogger>(logger);
-            Container.RegisterInstance<Models.ISensorTagService>(service);
+            Container.RegisterInstance<Models.ISensorTagService>(sensorService);
+            Container.RegisterInstance<Models.IIoTService>(iotService);
 
             // JCS: no need to define these: default implementation already does the job as long as views and viewmodels follow name conventions
             // define ViewModelLocator

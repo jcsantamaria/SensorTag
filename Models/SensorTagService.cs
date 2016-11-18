@@ -63,7 +63,7 @@ namespace SensorTagPi.Models
                                 Guid.Empty,
                               });
 
-        private readonly ILogger _logger;
+        private readonly ILogger          _logger;
         private readonly IEventAggregator _eventAggregator;
 
         private GattDeviceService[]  _services;
