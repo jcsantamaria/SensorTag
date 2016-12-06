@@ -57,7 +57,7 @@ namespace SensorTagPi
             // register services
             var logger = new Log.Logger();
             var sensorService = new Models.SensorTagService(logger, EventAggregator);
-            var iotService    = new Models.IoTService(logger, EventAggregator);
+            var iotService    = new Models.IoTService(logger, EventAggregator, 10000);
 
             Container.RegisterInstance<Core.Interfaces.ILogger>(logger);
             Container.RegisterInstance<Models.ISensorTagService>(sensorService);
