@@ -64,7 +64,7 @@ namespace SensorTagPi.ViewModels
 
         public bool IsConnected
         {
-            get { return _service.IsServiceInitialized; }
+            get { return _service.IsServiceConnected; }
         }
 
         private ObservableCollection<DeviceInformation> _devices = new ObservableCollection<DeviceInformation>();
@@ -117,10 +117,10 @@ namespace SensorTagPi.ViewModels
 
         async void DoConnectCommand()
         {
-            if ( _selectedIndex >= 0 && !_service.IsServiceInitialized)
+            if ( _selectedIndex >= 0 && !_service.IsServiceConnected)
             {
                 var deviceInfo = _devices[_selectedIndex];
-                await _service.InitializeServiceAsync(deviceInfo);
+                await _service.ConnectServiceAsync(deviceInfo);
 
                 OnPropertyChanged(() => SensorName);
                 OnPropertyChanged(() => IsConnected);
@@ -131,7 +131,7 @@ namespace SensorTagPi.ViewModels
 
         bool CanDoConnectCommand()
         {
-            return _selectedIndex >= 0 && !_service.IsServiceInitialized;
+            return _selectedIndex >= 0 && !_service.IsServiceConnected;
         }
         #endregion
 

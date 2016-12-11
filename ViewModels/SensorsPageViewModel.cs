@@ -25,14 +25,18 @@ namespace SensorTagPi.ViewModels
             _service = service;
 
             // sensor view models
-            Temperature = new TemperatureViewModel(eventAggregator);
-            Barometer   = new BarometerViewModel(eventAggregator);
-            Humidity    = new HumidityViewModel(eventAggregator);
-            Optical     = new OpticalViewModel(eventAggregator);
-            Movement    = new MovementViewModel(eventAggregator);
-            Keys        = new KeysViewModel(eventAggregator);
+            Temperature = new TemperatureViewModel(_eventAggregator);
+            Barometer   = new BarometerViewModel(_eventAggregator);
+            Humidity    = new HumidityViewModel(_eventAggregator);
+            Optical     = new OpticalViewModel(_eventAggregator);
+            Movement    = new MovementViewModel(_eventAggregator);
+            Keys        = new KeysViewModel(_eventAggregator);
+
+            // subscribe to measurements
+            _eventAggregator.GetEvent<PubSubEvent<Measurements>>().Subscribe((data) => Messages = Messages + 1, ThreadOption.UIThread);
 
             // command implementation
+            DisconnectCommand = new DelegateCommand(DoDisconnectCommand, CanDoDisconnectCommand);
 
             _logger.LogInfo("SensorPageViewModel.ctor", "success!");
         }
@@ -50,17 +54,41 @@ namespace SensorTagPi.ViewModels
         public MovementViewModel    Movement { get; private set; }
         public KeysViewModel        Keys { get; private set; }
 
+        private uint _messages;
+        public uint Messages
+        {
+            get { return _messages; }
+            set { SetProperty(ref _messages, value); }
+        }
+
         public bool IsConnected
         {
-            get { return _service.IsServiceInitialized; }
+            get { return _service.IsServiceConnected; }
         }
         #endregion
 
         #region Commands
+        public DelegateCommand DisconnectCommand { get; private set; }
         #endregion
 
         #region Command Implemenation
-        #endregion
+        void DoDisconnectCommand()
+        {
+            if (_service.IsServiceConnected)
+            {
+                _service.DisconnectService();
 
+                OnPropertyChanged(() => SensorName);
+                OnPropertyChanged(() => IsConnected);
+
+                _navigation.Navigate(DevicesPageViewModel.Token, null);
+            }
+        }
+
+        bool CanDoDisconnectCommand()
+        {
+            return _service.IsServiceConnected;
+        }
+        #endregion
     }
 }

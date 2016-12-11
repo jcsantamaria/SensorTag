@@ -29,9 +29,11 @@ namespace SensorTagPi.Models
     {
         string SensorName { get; }
 
-        bool IsServiceInitialized { get; }
+        bool IsServiceConnected { get; }
 
-        Task InitializeServiceAsync(DeviceInformation device);
+        Task ConnectServiceAsync(DeviceInformation device);
+
+        void DisconnectService();
     }
    
     class SensorTagService : ISensorTagService
@@ -82,15 +84,15 @@ namespace SensorTagPi.Models
             //_watcher = null;
 
             SensorName = string.Empty;
-            IsServiceInitialized = false;
+            IsServiceConnected = false;
         }
 
         #region ISensorTagService methods
         public string SensorName { get; set; }
 
-        public bool IsServiceInitialized { get; set; }
+        public bool IsServiceConnected { get; set; }
 
-        public async Task InitializeServiceAsync(DeviceInformation device)
+        public async Task ConnectServiceAsync(DeviceInformation device)
         {
             try
             {
@@ -117,20 +119,51 @@ namespace SensorTagPi.Models
                 {
                     if (_services[i] == null)
                     {
-                        _logger.LogError("SensorTagService.InitializeServiceAsync", "Access to service {0} is denied, because the application was not granted access, " +
+                        _logger.LogError("SensorTagService.ConnectServiceAsync", "Access to service {0} is denied, because the application was not granted access, " +
                                                                                     "or the device is currently in use by another application.", Enum.GetName(typeof(Sensors), i) );
                     }
                 }
 
                 // set properties
-                IsServiceInitialized = true;
+                IsServiceConnected = true;
                 SensorName = device.Name;
 
                 await ConfigureServiceForNotificationsAsync();
+
+                _logger.LogInfo("SensorTagService.ConnectServiceAsync", "success!");
             }
             catch (Exception e)
             {
-                _logger.LogException("SensorTagService.InitializeServiceAsync", e, "Accessing your device failed.");
+                _logger.LogException("SensorTagService.ConnectServiceAsync", e, "Accessing your device failed.");
+            }
+        }
+
+        public void DisconnectService()
+        {
+            try
+            {
+                // disconnect all services
+                for(int i =0; i<_services.Length; i++)
+                {
+                    var svc = _services[i];
+                    if ( svc != null)
+                        svc.Dispose();
+                    _services[i] = null;
+                }
+
+                // release notifications
+                for(int i=0; i< _notifications.Length; i++)
+                    _notifications[i] = null;
+
+                // reset properties
+                SensorName = string.Empty;
+                IsServiceConnected = false;
+
+                _logger.LogInfo("SensorTagService.DisconnectService", "success!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.DisconnectService", ex, string.Empty);
             }
         }
         #endregion
@@ -227,95 +260,142 @@ namespace SensorTagPi.Models
 
         private void TemperatureValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            double objtemp = (BitConverter.ToInt16(buffer, 0) >> 2) * 0.03125;
-            double ambtemp = (BitConverter.ToInt16(buffer, 2) >> 2) * 0.03125;
+                double objtemp = (BitConverter.ToInt16(buffer, 0) >> 2) * 0.03125;
+                double ambtemp = (BitConverter.ToInt16(buffer, 2) >> 2) * 0.03125;
 
-            _eventAggregator.GetEvent<PubSubEvent<TemperatureSensor>>().Publish(new TemperatureSensor(objtemp, ambtemp));
+                _eventAggregator.GetEvent<PubSubEvent<TemperatureSensor>>().Publish(new TemperatureSensor(objtemp, ambtemp));
 
-            //_logger.LogInfo("SensorTagService.TemperatureValueChanged", "Temperature: {0:F3}  Ambient: {1:F3}", objtemp, ambtemp);
+                //_logger.LogInfo("SensorTagService.TemperatureValueChanged", "Temperature: {0:F3}  Ambient: {1:F3}", objtemp, ambtemp);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.TemperatureValueChanged", ex, string.Empty);
+            }
         }
 
         private void OpticalValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            ushort data = BitConverter.ToUInt16(buffer, 0);
-            int m = data & 0x0FFF;
-            int e = (data & 0xF000) >> 12;
-            double luminosity = m * 0.01 * Math.Pow(2, e);
+                ushort data = BitConverter.ToUInt16(buffer, 0);
+                int m = data & 0x0FFF;
+                int e = (data & 0xF000) >> 12;
+                double luminosity = m * 0.01 * Math.Pow(2, e);
 
-            _eventAggregator.GetEvent<PubSubEvent<OpticalSensor>>().Publish(new OpticalSensor(luminosity));
+                _eventAggregator.GetEvent<PubSubEvent<OpticalSensor>>().Publish(new OpticalSensor(luminosity));
 
-            //_logger.LogInfo("SensorTagService.OpticalValueChanged", "Luminosity: {0:F3}", luminosity);
+                //_logger.LogInfo("SensorTagService.OpticalValueChanged", "Luminosity: {0:F3}", luminosity);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.OpticalValueChanged", ex, string.Empty);
+            }
         }
 
         private void MovementValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            // gyroscope data
-            float gyrox = BitConverter.ToInt16(buffer, 0) * 500.0f / 65536.0f;
-            float gyroy = BitConverter.ToInt16(buffer, 2) * 500.0f / 65536.0f;
-            float gyroz = BitConverter.ToInt16(buffer, 4) * 500.0f / 65536.0f;
+                // gyroscope data
+                float gyrox = BitConverter.ToInt16(buffer, 0) * 500.0f / 65536.0f;
+                float gyroy = BitConverter.ToInt16(buffer, 2) * 500.0f / 65536.0f;
+                float gyroz = BitConverter.ToInt16(buffer, 4) * 500.0f / 65536.0f;
 
-            // acceleration data: acceleration range configured to 2G
-            float accx = BitConverter.ToInt16(buffer, 6) * 2.0f / 32768.0f;
-            float accy = BitConverter.ToInt16(buffer, 8) * 2.0f / 32768.0f;
-            float accz = BitConverter.ToInt16(buffer, 10) * 2.0f / 32768.0f;
+                // acceleration data: acceleration range configured to 2G
+                float accx = BitConverter.ToInt16(buffer, 6) * 2.0f / 32768.0f;
+                float accy = BitConverter.ToInt16(buffer, 8) * 2.0f / 32768.0f;
+                float accz = BitConverter.ToInt16(buffer, 10) * 2.0f / 32768.0f;
 
-            // magnetometer data
-            float magx = BitConverter.ToInt16(buffer, 12);
-            float magy = BitConverter.ToInt16(buffer, 14);
-            float magz = BitConverter.ToInt16(buffer, 16);
+                // magnetometer data
+                float magx = BitConverter.ToInt16(buffer, 12);
+                float magy = BitConverter.ToInt16(buffer, 14);
+                float magz = BitConverter.ToInt16(buffer, 16);
 
-            _eventAggregator.GetEvent<PubSubEvent<MovementSensor>>().Publish(new MovementSensor(new System.Numerics.Vector3(accx, accy, accz),
-                                                                                                new System.Numerics.Vector3(gyrox, gyroy, gyroz),
-                                                                                                new System.Numerics.Vector3(magx, magy, magz)));
+                _eventAggregator.GetEvent<PubSubEvent<MovementSensor>>().Publish(new MovementSensor(new System.Numerics.Vector3(accx, accy, accz),
+                                                                                                    new System.Numerics.Vector3(gyrox, gyroy, gyroz),
+                                                                                                    new System.Numerics.Vector3(magx, magy, magz)));
 
-            //_logger.LogInfo("SensorTagService.MovementValueChanged", "Acc: {0:F3},{1:F3},{2:F3}", accx, accy, accz);
+                //_logger.LogInfo("SensorTagService.MovementValueChanged", "Acc: {0:F3},{1:F3},{2:F3}", accx, accy, accz);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.MovementValueChanged", ex, string.Empty);
+            }
         }
 
         private void KeysValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            byte data = buffer[0];
+                byte data = buffer[0];
 
-            _eventAggregator.GetEvent<PubSubEvent<KeysSensor>>().Publish(new KeysSensor((data & 0x02) != 0, (data & 0x01) != 0));
+                _eventAggregator.GetEvent<PubSubEvent<KeysSensor>>().Publish(new KeysSensor((data & 0x02) != 0, (data & 0x01) != 0));
 
-            _logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:X}", data);
+                _logger.LogInfo("SensorTagService.KeysValueChanged", "Keys: {0:X}", data);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.KeysValueChanged", ex, string.Empty);
+            }
         }
 
         private void HumidityValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            double temp = BitConverter.ToInt16(buffer, 0) * 165.0 / 65536.0 - 40.0;
-            double humidity = BitConverter.ToInt16(buffer, 2) * 100.0 / 65536.0;
+                double temp = BitConverter.ToInt16(buffer, 0) * 165.0 / 65536.0 - 40.0;
+                double humidity = BitConverter.ToInt16(buffer, 2) * 100.0 / 65536.0;
 
-            _eventAggregator.GetEvent<PubSubEvent<HumiditySensor>>().Publish(new HumiditySensor(humidity, temp));
+                _eventAggregator.GetEvent<PubSubEvent<HumiditySensor>>().Publish(new HumiditySensor(humidity, temp));
 
-            //_logger.LogInfo("SensorTagService.HumidityValueChanged", "Temperature: {0:F3}  Humidity: {1:F3}", temp, humidity);
+                //_logger.LogInfo("SensorTagService.HumidityValueChanged", "Temperature: {0:F3}  Humidity: {1:F3}", temp, humidity);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.HumidityValueChanged", ex, string.Empty);
+            }
         }
 
         private void BarometerValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            byte[] buffer = new byte[args.CharacteristicValue.Length];
-            DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
+            try
+            {
+                byte[] buffer = new byte[args.CharacteristicValue.Length];
+                DataReader.FromBuffer(args.CharacteristicValue).ReadBytes(buffer);
 
-            double temp = BitConverter.ToInt32(new byte[] { buffer[0], buffer[1], buffer[2], 0x00 }, 0) / 100.0;
-            double pres = BitConverter.ToInt32(new byte[] { buffer[3], buffer[4], buffer[5], 0x00 }, 0) / 100.0;
+                double temp = BitConverter.ToInt32(new byte[] { buffer[0], buffer[1], buffer[2], 0x00 }, 0) / 100.0;
+                double pres = BitConverter.ToInt32(new byte[] { buffer[3], buffer[4], buffer[5], 0x00 }, 0) / 100.0;
 
-            _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Publish(new BarometerSensor(temp, pres));
+                _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Publish(new BarometerSensor(temp, pres));
 
-            //_logger.LogInfo("SensorTagService.BarometerValueChanged", "Temperature: {0:F3}  Pressure: {1:F3}", temp, pres);
+                //_logger.LogInfo("SensorTagService.BarometerValueChanged", "Temperature: {0:F3}  Pressure: {1:F3}", temp, pres);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.TemperatureValueChanged", ex, string.Empty);
+            }
         }
         #endregion
     }

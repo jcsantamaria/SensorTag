@@ -29,10 +29,21 @@
 
         <CommandBar Grid.Row="0" Grid.ColumnSpan="2">
             <CommandBar.Content>
-                <TextBlock Text="{Binding SensorName}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Column="0" Text="{Binding SensorName}" />
+
+                    <TextBlock Grid.Column="1" Text="Messages:" Padding="10,0,0,0"/>
+                    <TextBlock Grid.Column="2" Text="{Binding Messages}" Width="30" Padding="5,0,0,0"/>
+                </Grid>
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
-                <AppBarButton Content="Devices" Width="100" Command="{Binding NavigateCommand}" CommandParameter="Devices" Margin="0,0,20,0" />
+                <AppBarButton Content="Disconnect" Width="100" Command="{Binding DisconnectCommand}" Margin="0,0,20,0" />
 
             </CommandBar.PrimaryCommands>
         </CommandBar>

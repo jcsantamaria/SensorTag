@@ -173,14 +173,21 @@ namespace SensorTagPi.Models
                                 luminosity = vals.Average();
 
                             aggregate = new Measurements(temperature, humidity, pressure, luminosity);
+
+                            // reset measurements
+                            _measurements.Clear();
                         }
                     }
 
                     // send to the cloud
                     if (aggregate != null)
                     {
+                        // send to cloud
                         string serial = JsonConvert.SerializeObject(aggregate);
                         _deviceClient.SendEventAsync(new Message(Encoding.ASCII.GetBytes(serial))).AsTask().Wait();
+
+                        // publish event
+                        _eventAggregator.GetEvent<PubSubEvent<Measurements>>().Publish(aggregate);
                     }
                 }
                 catch(Exception ex)
