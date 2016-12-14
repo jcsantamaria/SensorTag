@@ -387,7 +387,7 @@ namespace SensorTagPi.Models
                 double temp = BitConverter.ToInt32(new byte[] { buffer[0], buffer[1], buffer[2], 0x00 }, 0) / 100.0;
                 double pres = BitConverter.ToInt32(new byte[] { buffer[3], buffer[4], buffer[5], 0x00 }, 0) / 100.0;
 
-                _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Publish(new BarometerSensor(temp, pres));
+                _eventAggregator.GetEvent<PubSubEvent<BarometerSensor>>().Publish(new BarometerSensor(pres, temp));
 
                 //_logger.LogInfo("SensorTagService.BarometerValueChanged", "Temperature: {0:F3}  Pressure: {1:F3}", temp, pres);
 

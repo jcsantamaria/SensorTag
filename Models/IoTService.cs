@@ -184,7 +184,7 @@ namespace SensorTagPi.Models
                     {
                         // send to cloud
                         string serial = JsonConvert.SerializeObject(aggregate);
-                        _deviceClient.SendEventAsync(new Message(Encoding.ASCII.GetBytes(serial))).AsTask().Wait();
+                        _deviceClient.SendEventAsync(new Message(Encoding.ASCII.GetBytes(serial))).Wait();
 
                         // publish event
                         _eventAggregator.GetEvent<PubSubEvent<Measurements>>().Publish(aggregate);
