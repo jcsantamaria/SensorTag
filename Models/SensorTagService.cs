@@ -34,6 +34,8 @@ namespace SensorTagPi.Models
         Task ConnectServiceAsync(DeviceInformation device);
 
         void DisconnectService();
+
+        Task EnableSensorAsync(Sensors sensor);
     }
    
     class SensorTagService : ISensorTagService
@@ -218,43 +220,62 @@ namespace SensorTagPi.Models
 
                             // Set the notify enable flag
                             await notification.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
+
+                            _logger.LogInfo("SensorTagService.ConfigureServiceForNotificationsAsync", "Success! {0}", sensor);
                         }
 
                         // enable sensor
-                        if (ConfigurationUuids[i] != Guid.Empty)
-                        {
-                            var cnf = svc.GetCharacteristics(ConfigurationUuids[i]).First();
-                            if ( cnf.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write))
-                            {
-                                var writer = new DataWriter();
-                                switch (sensor)
-                                {
-                                    case Sensors.BAROMETER:
-                                    case Sensors.HUMIDITY:
-                                    case Sensors.OPTICAL:
-                                    case Sensors.TEMPERATURE:
-                                        writer.WriteByte(0x01);
-                                        break;
-
-                                    case Sensors.MOVEMENT:
-                                        writer.WriteByte(0x7F);
-                                        writer.WriteByte(0x00);
-                                        break;
-                                }
-
-                                await cnf.WriteValueAsync(writer.DetachBuffer());
-                            }
-                        }
-
-                        _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Publish(new SensorStatus(sensor, true));
-
-                        _logger.LogInfo("SensorTagService.ConfigureServiceForNotificationsAsync", "Success! {0}", sensor);
+                        await EnableSensorAsync(sensor);
                     }
                 }
             }
             catch( Exception ex)
             {
                 _logger.LogException("SensorTagService.ConfigureServiceForNotificationsAsync", ex, string.Empty);
+            }
+        }
+
+        public async Task EnableSensorAsync(Sensors sensor)
+        {
+            try
+            {
+                int i = (int)sensor;
+                if (ConfigurationUuids[i] != Guid.Empty)
+                {
+                    var svc = _services[i];
+                    if (svc != null)
+                    {
+                        var cnf = svc.GetCharacteristics(ConfigurationUuids[i]).First();
+                        if (cnf.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write))
+                        {
+                            var writer = new DataWriter();
+                            switch (sensor)
+                            {
+                                case Sensors.BAROMETER:
+                                case Sensors.HUMIDITY:
+                                case Sensors.OPTICAL:
+                                case Sensors.TEMPERATURE:
+                                    writer.WriteByte(0x01);
+                                    break;
+
+                                case Sensors.MOVEMENT:
+                                    writer.WriteByte(0x7F);
+                                    writer.WriteByte(0x00);
+                                    break;
+                            }
+
+                            await cnf.WriteValueAsync(writer.DetachBuffer());
+                        }
+                    }
+
+                    _eventAggregator.GetEvent<PubSubEvent<SensorStatus>>().Publish(new SensorStatus(sensor, true));
+
+                    _logger.LogInfo("SensorTagService.EnableSensorAsync", "Sensor {0}: enabled!", sensor);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException("SensorTagService.EnableSensorAsync", ex, "Sensor {0}", sensor);
             }
         }
 

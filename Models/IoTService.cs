@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
+using Microsoft.Practices.Unity;
+
 using Microsoft.Azure.Devices.Client;
 
 using Prism.Events;
@@ -196,6 +198,13 @@ namespace SensorTagPi.Models
                 }
             }
 
+            //// reenable all sensors
+            //ISensorTagService sensorTag = App.Current.Container.Resolve<ISensorTagService>();
+            //foreach( Sensors sensor in Enum.GetValues(typeof(Sensors)))
+            //{
+            //    sensorTag.EnableSensorAsync(sensor).Wait();
+            //}
+
             // done
             Interlocked.Exchange(ref _sending, 0);
         }
@@ -303,6 +312,7 @@ namespace SensorTagPi.Models
                 _measurements.AddRange(Triplet.FromHumidity(humidity));
             }
         }
+
         private void CollectBarometerMeasurements(BarometerSensor barometer)
         {
             lock (_measurements)
